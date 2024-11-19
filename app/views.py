@@ -123,8 +123,13 @@ def category_add(request):
     if request.method == "POST":
         name = request.POST.get("name")
         category_type = request.POST.get("category")
-        Category.objects.create(user=request.user, name=name, category_type=category_type).save()
-        return redirect('expense-add')
+        # Check if the necessary fields are present
+        if name and category_type:
+            Category.objects.create(user=request.user, name=name, category_type=category_type)
+            return redirect('expense-add')
+        else:
+            # If fields are missing, show an error message
+            messages.error(request, "Both name and category type are required.")
     return render(request, 'category_add.html',context={'category_types':category_types})
 
 
