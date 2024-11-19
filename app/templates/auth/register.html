@@ -12,6 +12,18 @@
         <form method="POST">
             {% csrf_token %}
 
+
+            <!-- start Messages Block -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-light text-dark alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            <!-- End Messages Block -->
+
             <!-- Email Field -->
              <div class="mb-3">
                 <label class="form-label">Email</label>
@@ -50,18 +62,7 @@
 
             <!-- Submit Button -->
             <button type="submit" class="btn btn-success mb-3 w-100">Register</button>
-
-            <!-- Display Django messages (if any) -->
-            {% if messages %}
-                <div class="mb-3">
-                    {% for message in messages %}
-                        <div class="alert alert-warning">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
             <p class="text-center mt-3">Already have an account?</p>
-
             <!-- Link to Login Page -->
             <div class="text-center">
                 <a href="{% url 'login' %}" class="btn btn-dark w-100">Login</a>

@@ -6,12 +6,14 @@ from django.contrib import messages
 from django.db.models import Sum
 from django.contrib.auth import get_user_model
 import json
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 # Create your views here.
 User = get_user_model()
 
 
-@decorators.login_required(login_url='login')
+@login_required(login_url='login')
 def home_view(request):
     income = Income.objects.filter(user=request.user)
     
@@ -38,10 +40,21 @@ def login_view(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
+
+        if not email or not password:
+            messages.error(request, "Both email and password are required.")
+            return render(request, 'auth/login.html')
+
         user_obj = authenticate(request, email=email, password=password)
-        login(request, user_obj)
-        return redirect('home')  # Redirect to your desired page after login
-    return render(request, 'login.html')
+
+        if user_obj is not None:
+            login(request, user_obj)
+            return redirect('home')  # Redirect to your desired page after login
+        else:
+            messages.error(request, "Invalid email or password.")
+
+    return render(request, 'auth/login.html')
+
 
 
 def register_view(request):
@@ -53,15 +66,22 @@ def register_view(request):
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
 
+        # Validate input
+        if not email or not username or not name or not phone or not password1 or not password2:
+            messages.error(request, "All fields are required")
+            return redirect('register')
+        
+        
         # Validate that passwords match
         if password1 != password2:
             messages.error(request, "Passwords do not match")
-            return redirect('register')  # Redirect back to the registration page
-
+            return redirect('register')
+        
         # Validate password strength
         if len(password1) < 8:
             messages.error(request, "Password must be at least 8 characters long")
             return redirect('register')
+        
 
         # Check if user already exists
         if User.objects.filter(username=username).exists():
@@ -71,31 +91,33 @@ def register_view(request):
             messages.error(request, "Email already in use")
             return redirect('register')
 
+        
         # Create new user
         try:
             user = User.objects.create_user(username=username, email=email, name=name, phone=phone, password=password1)
             user.save()
+
+            # Automatically log the user in after registration
             login(request, user)
             return redirect('home')
-        except ValidationError as e:
-            messages.error(request, f"Error: {e}")
+        
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
             return redirect('register')
 
-    else:
-        return render(request, 'register.html')
+    return render(request, 'auth/register.html')
     
 
+
+@login_required(login_url='login')
 def logout_view(request):
-    if request.user.is_authenticated:
-        logout(request)
-        return redirect('login')
-    else:
-        return redirect('login')
+    logout(request)
+    return redirect('login')  # Redirect to login after logout
     
 
 
 
-# Category
+@login_required(login_url='login')
 def category_add(request):
     category_types = Category.CATEGORY_TYPES
     if request.method == "POST":
@@ -111,7 +133,7 @@ def category_add(request):
 
 
 # Expense
-@decorators.login_required(login_url='login')
+@login_required(login_url='login')
 def expenses_view(request):     
     expense_obj = Expense.objects.filter(user=request.user).order_by('-date')
     total_expenses = expense_obj.aggregate(Sum('amount'))['amount__sum'] 
@@ -123,7 +145,7 @@ def expenses_view(request):
     return render(request, 'expenses.html', context={'expense_obj':expense_obj, 'total_expenses':total_expenses, 'expense_categories':expense_categories})
 
 
-@decorators.login_required(login_url='login')
+@login_required(login_url='login')
 def expense_add_view(request):
     if request.method == "POST":
         amount = request.POST.get('amount')
@@ -141,7 +163,7 @@ def expense_add_view(request):
     return render(request, 'expense_add.html', context={'expense_categories':expense_categories})
 
 
-@decorators.login_required(login_url='login')
+@login_required(login_url='login')
 def expense_update_view(request, id):
     expense = get_object_or_404(Expense, user=request.user, id=id)
     
@@ -170,7 +192,7 @@ def expense_update_view(request, id):
     return render(request, 'expense_update.html', context={'expense':expense, 'expense_categories':expense_categories})
 
 
-@decorators.login_required(login_url='login')
+@login_required(login_url='login')
 def expense_delete_view(request, id):
     expense_id = get_object_or_404(Expense, user=request.user, id=id)
     expense_id.delete()
@@ -184,7 +206,7 @@ def expense_delete_view(request, id):
 
 
 # Income
-@decorators.login_required(login_url='login')
+@login_required(login_url='login')
 def income_add_view(request):
     if request.method == "POST":
         amount = request.POST.get('amount')
@@ -202,7 +224,7 @@ def income_add_view(request):
 
 
 
-@decorators.login_required(login_url='login')
+@login_required(login_url='login')
 def income_update_view(request, id):
     income = get_object_or_404(Income, user=request.user, id=id)
     if request.method == "POST":
@@ -227,7 +249,7 @@ def income_update_view(request, id):
 
 
 
-@decorators.login_required(login_url='login')
+@login_required(login_url='login')
 def income_delete_view(request, id):
     income = get_object_or_404(Income, user=request.user, id=id)
     income.delete()
@@ -246,11 +268,13 @@ def income_delete_view(request, id):
 
 
 # Budget
+@login_required(login_url='login')
 def budgets_view(request):
     budgets = request.user.budgets.all()
     return render(request, 'budgets.html', context={'budgets':budgets})
 
 
+@login_required(login_url='login')
 def budget_add_view(request):
     expense_categories = request.user.categories.filter(category_type='Expense')
     if request.method == "POST":
@@ -265,7 +289,7 @@ def budget_add_view(request):
     return render(request, 'budget_add.html', context={'expense_categories':expense_categories})
 
 
-
+@login_required(login_url='login')
 def budget_update_view(request, id):
     budget = get_object_or_404(Budget, user=request.user, id=id)
     expense_categories = request.user.categories.filter(category_type='Expense')
@@ -290,6 +314,7 @@ def budget_update_view(request, id):
     return render(request, 'budget_update.html', context={'budget':budget, 'expense_categories':expense_categories})
 
 
+@login_required(login_url='login')
 def budget_delete_view(request, id):
     budget = get_object_or_404(Budget, user=request.user, id=id)
     budget.delete()
@@ -300,11 +325,13 @@ def budget_delete_view(request, id):
 
 
 # EMI
+@login_required(login_url='login')
 def emi_view(request):
     emis = request.user.emis.all()
     return render(request, 'emi.html',context={'emis':emis})
 
 
+@login_required(login_url='login')
 def emi_add_view(request):
     if request.method == "POST":
         amount = request.POST.get('amount')
@@ -319,7 +346,7 @@ def emi_add_view(request):
     return render(request, 'emi_add.html',context={})
 
 
-
+@login_required(login_url='login')
 def emi_update_view(request, id):
     emi = get_object_or_404(EMI, user=request.user, id=id)
     
@@ -346,7 +373,7 @@ def emi_update_view(request, id):
     return render(request, 'emi_update.html',context={'emi':emi})
 
 
-
+@login_required(login_url='login')
 def emi_delete_view(request, id):
     emi = get_object_or_404(EMI, user=request.user, id=id)
     emi.delete()
@@ -356,5 +383,6 @@ def emi_delete_view(request, id):
 
 
 # Report Generate
+@login_required(login_url='login')
 def generate_report(request):
     return render(request, 'generate_report.html', context={})
