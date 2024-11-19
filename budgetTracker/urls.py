@@ -32,28 +32,28 @@ urlpatterns = [
 
     #
     path('expenses/', views.expenses_view, name='expenses'),
-    path('expense-add/', views.expense_add_view, name='expense-add'),
-    path('expense-update/<int:id>', views.expense_update_view, name="expense-update"),
-    path('expense-delete/<int:id>', views.expense_delete_view, name='expense-delete'),
+    path('expense/add', views.expense_add_view, name='expense-add'),
+    path('expense/update/<int:id>', views.expense_update_view, name="expense-update"),
+    path('expense/delete/<int:id>', views.expense_delete_view, name='expense-delete'),
 
     #
-    path('income-add/', views.income_add_view, name='income-add'),
-    path('income-update/<int:id>', views.income_update_view, name='income-update'),
-    path('income-delete/<int:id>', views.income_delete_view, name='income-delete'),
+    path('income/add', views.income_add_view, name='income-add'),
+    path('income/update/<int:id>', views.income_update_view, name='income-update'),
+    path('income/delete/<int:id>', views.income_delete_view, name='income-delete'),
 
 
     #
     path('budgets/', views.budgets_view, name='budgets'),
-    path('budget-add/', views.budget_add_view, name='budget-add'),
-    path('budget-update/<int:id>', views.budget_update_view, name='budget-update'),
-    path('budget-delete/<int:id>', views.budget_delete_view, name='budget-delete'),
+    path('budget/add', views.budget_add_view, name='budget-add'),
+    path('budget/update/<int:id>', views.budget_update_view, name='budget-update'),
+    path('budget/delete/<int:id>', views.budget_delete_view, name='budget-delete'),
 
 
     #
     path('emi/', views.emi_view, name='emi'),
-    path('emi-add/', views.emi_add_view, name='emi-add'),
-    path('emi-update/<int:id>', views.emi_update_view, name='emi-update'),
-    path('emi-delete/<int:id>', views.emi_delete_view, name='emi-delete'),
+    path('emi/add', views.emi_add_view, name='emi-add'),
+    path('emi/update/<int:id>', views.emi_update_view, name='emi-update'),
+    path('emi/delete/<int:id>', views.emi_delete_view, name='emi-delete'),
 
 
     #
