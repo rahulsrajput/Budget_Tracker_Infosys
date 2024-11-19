@@ -27,10 +27,7 @@ def home_view(request):
         "income": float(request.user.total_income()),
         "expense": float(request.user.total_expense()),
         "emi": float(request.user.total_emi()),
-        "budget": float(request.user.total_budget()),
     }
-
-
     return render(request, 'home.html', context={'expense_obj':expense_obj, 'income':income,  'budgets':budgets, 'emis':emis, 'data':json.dumps(data)})
 
 
@@ -229,15 +226,29 @@ def income_add_view(request):
         description = request.POST.get('description')
         date = request.POST.get('date')
         category_id = request.POST.get('category')
-        category = Category.objects.get(id=category_id)
 
-        # Save the new income record
-        income = Income.objects.create(user=request.user, amount=amount, description=description, date=date, category=category)
-        income.save()
-        return redirect('home')
+        # Validate input
+        if not amount or not date or not category_id:
+            messages.error(request, "Amount, Date, and Category are required fields.")
+            return redirect('income-add')
+
+        try:
+            if amount <= 0:
+                messages.error(request, "Amount must be greater than zero.")
+                return redirect('income-add')
+            
+            # Get the category
+            category = get_object_or_404(Category, id=category_id, user=request.user)
+            # Save the new income record
+            Income.objects.create(user=request.user, amount=amount, description=description, date=date, category=category)
+            messages.success(request, "Income added successfully.")
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+    
+    # Fetch income categories for the dropdown
     income_categories = request.user.categories.filter(category_type='Income')
-    return render(request, 'income_add.html', context={'income_categories':income_categories})
-
+    return render(request, 'income/income_add.html', context={'income_categories':income_categories})
 
 
 @login_required(login_url='login')
@@ -248,20 +259,33 @@ def income_update_view(request, id):
         description = request.POST.get('description')
         date = request.POST.get('date')
         category_id = request.POST.get('category')
-        category = Category.objects.get(id=category_id)
+
+        # Validate input
+        if not amount or not date or not category_id:
+            messages.error(request, "Amount, Date, and Category are required fields.")
+            return redirect('income-update', id=id)
+        
         # Save the new income record
         try:
+            if amount <= 0:
+                messages.error(request, "Amount must be greater than zero.")
+                return redirect('income-update', id=id)
+            
+            category = Category.objects.get(id=category_id)
+            
             income.amount = amount
             income.description = description
             income.date = date
             income.category = category
             income.save()
+            
+            messages.success(request, "Income updated successfully.")
             return redirect('home')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
 
     income_categories = request.user.categories.filter(category_type='Income')
-    return render(request, 'income_update.html', context={'income':income,'income_categories':income_categories})
+    return render(request, 'income/income_update.html', context={'income':income,'income_categories':income_categories})
 
 
 
@@ -287,7 +311,7 @@ def income_delete_view(request, id):
 @login_required(login_url='login')
 def budgets_view(request):
     budgets = request.user.budgets.all()
-    return render(request, 'budgets.html', context={'budgets':budgets})
+    return render(request, 'budget/budgets.html', context={'budgets':budgets})
 
 
 @login_required(login_url='login')
@@ -302,7 +326,7 @@ def budget_add_view(request):
         budget = Budget.objects.create(user=request.user, amount_limit=amount_limit, start_date=start_date, end_date=end_date, category=category)
         budget.save()
         return redirect('home')
-    return render(request, 'budget_add.html', context={'expense_categories':expense_categories})
+    return render(request, 'budget/budget_add.html', context={'expense_categories':expense_categories})
 
 
 @login_required(login_url='login')
@@ -327,7 +351,7 @@ def budget_update_view(request, id):
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
 
-    return render(request, 'budget_update.html', context={'budget':budget, 'expense_categories':expense_categories})
+    return render(request, 'budget/budget_update.html', context={'budget':budget, 'expense_categories':expense_categories})
 
 
 @login_required(login_url='login')
@@ -344,7 +368,7 @@ def budget_delete_view(request, id):
 @login_required(login_url='login')
 def emi_view(request):
     emis = request.user.emis.all()
-    return render(request, 'emi.html',context={'emis':emis})
+    return render(request, 'emi/emi.html',context={'emis':emis})
 
 
 @login_required(login_url='login')
@@ -359,7 +383,7 @@ def emi_add_view(request):
         emi = EMI.objects.create(user=request.user, amount=amount, next_payment_date=next_payment_date, start_date=start_date, end_date=end_date, description=description, frequency=frequency)
         emi.save()
         return redirect('home')
-    return render(request, 'emi_add.html',context={})
+    return render(request, 'emi/emi_add.html',context={})
 
 
 @login_required(login_url='login')
@@ -386,7 +410,7 @@ def emi_update_view(request, id):
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
 
-    return render(request, 'emi_update.html',context={'emi':emi})
+    return render(request, 'emi/emi_update.html',context={'emi':emi})
 
 
 @login_required(login_url='login')

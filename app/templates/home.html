@@ -112,7 +112,7 @@
             <!-- Total and View All Link -->
             <hr class="my-2">
             <div class="d-flex justify-content-between mt-3">
-                <p class="mb-0 text-danger">Total Expenses: ₹{{ request.user.total_income }}</p>
+                <p class="mb-0 text-success">Total Income: ₹{{ request.user.total_income }}</p>
                 <p class="mb-0 text-success">Total Saving: ₹{{ request.user.total_savings }}</a>
             </div>
         </div>
@@ -228,10 +228,6 @@
                             <span class="legend-color" style="background-color: rgba(54, 162, 235, 0.7);"></span>
                             <span class="ms-2">EMI</span>
                         </li>
-                        <li class="d-flex align-items-center mb-2">
-                            <span class="legend-color" style="background-color: rgba(255, 206, 86, 0.7);"></span>
-                            <span class="ms-2">Budget</span>
-                        </li>
                     </ul>
                 </div>
             </div>
@@ -264,13 +260,11 @@
                     'rgba(75, 192, 192, 0.7)', // Green for Income
                     'rgba(255, 99, 132, 0.7)', // Red for Expense
                     'rgba(54, 162, 235, 0.7)', // Blue for EMI
-                    'rgba(255, 206, 86, 0.7)'  // Yellow for Budget
                 ],
                 borderColor: [
                     'rgba(75, 192, 192, 1)',
                     'rgba(255, 99, 132, 1)',
                     'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)'
                 ],
                 borderWidth: 2
             }]
