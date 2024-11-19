@@ -140,14 +140,13 @@ def category_add(request):
 # Expense
 @login_required(login_url='login')
 def expenses_view(request):     
+    # Get all expenses for the current user, ordered by date
     expense_obj = Expense.objects.filter(user=request.user).order_by('-date')
-    total_expenses = expense_obj.aggregate(Sum('amount'))['amount__sum'] 
-    
-    # Filter :
+    # Calculate the total expenses for the user (use `or` to handle case where no expenses exist)
+    total_expenses = expense_obj.aggregate(Sum('amount'))['amount__sum'] or 0
+    # Get categories where the category_type is 'Expense'
     expense_categories = request.user.categories.filter(category_type='Expense')
-    
-    
-    return render(request, 'expenses.html', context={'expense_obj':expense_obj, 'total_expenses':total_expenses, 'expense_categories':expense_categories})
+    return render(request, 'expense/expenses.html', context={'expense_obj':expense_obj, 'total_expenses':total_expenses, 'expense_categories':expense_categories})
 
 
 @login_required(login_url='login')
@@ -158,20 +157,30 @@ def expense_add_view(request):
         category_id = request.POST.get('category')
         date = request.POST.get('date')
         is_fixed = 'is_fixed' in request.POST
-        # Retrieve the selected category from the database
-        category = Category.objects.get(id=category_id)
-        # Save the new expense record
-        expense = Expense.objects.create(user=request.user ,amount=amount, description=description, category=category, date=date, is_fixed=is_fixed)
-        expense.save()
-        return redirect('home')
+
+        # Validate input fields
+        if not amount or not description or not category_id or not date:
+            messages.error(request, "All fields are required.")
+            return redirect('expense-add')  # Redirect back to the form
+        try:
+            # Retrieve the selected category from the database
+            category = Category.objects.get(id=category_id, user=request.user)  # Ensure the category belongs to the user
+            # Save the new expense record
+            Expense.objects.create(user=request.user ,amount=amount, description=description, category=category, date=date, is_fixed=is_fixed)
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('expense-add')
+    # Get the categories for the current user
     expense_categories = request.user.categories.filter(category_type='Expense')
-    return render(request, 'expense_add.html', context={'expense_categories':expense_categories})
+    return render(request, 'expense/expense_add.html', context={'expense_categories':expense_categories})
 
 
 @login_required(login_url='login')
 def expense_update_view(request, id):
+
+    # Retrieve the expense object for the logged-in user
     expense = get_object_or_404(Expense, user=request.user, id=id)
-    
     expense_categories = request.user.categories.filter(category_type='Expense')
     
     if request.method == 'POST':
@@ -190,11 +199,13 @@ def expense_update_view(request, id):
             expense.date = date
             expense.is_fixed = is_fixed
             expense.save()
+            messages.success(request, "Expense updated successfully.")
             return redirect('expenses')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('expense-update',id=id)
 
-    return render(request, 'expense_update.html', context={'expense':expense, 'expense_categories':expense_categories})
+    return render(request, 'expense/expense_update.html', context={'expense':expense, 'expense_categories':expense_categories})
 
 
 @login_required(login_url='login')

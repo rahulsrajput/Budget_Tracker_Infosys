@@ -1,21 +1,33 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Update Expense{% endblock %}
+{% block title %}Add Expense{% endblock %}
 
 {% block content %}
 <hr class="my-4">
 
 <div class="d-flex justify-content-center align-items-center mb-5">
     <div class="card text-white shadow-sm p-4" style="width: 100%; max-width: 500px;">
-        <h4 class="text-center mb-4">Update Expense</h4>
+        <h4 class="text-center mb-4">Add Expense</h4>
 
         <form method="POST">
             {% csrf_token %}
 
+            <!-- start Messages Block -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-light text-dark alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            <!-- End Messages Block -->
+
+            
             <!-- Amount Field -->
             <div class="mb-3">
                 <label class="form-label">Amount</label>
-                <input type="number" step="0.01" name="amount" class="form-control bg-dark text-white border-0 rounded" value="{{ expense.amount }}" required>
+                <input type="number" step="0.01" name="amount" class="form-control bg-dark text-white border-0 rounded" required>
             </div>
 
             <!-- Category Field -->
@@ -25,11 +37,9 @@
                     <a href="{% url 'category-add' %}" class="text-success">+Add Category</a>
                 </div>
                 <select name="category" class="form-control bg-dark text-white border-0 rounded" required>
-                    <option value="" disabled>Select Category</option>
+                    <option value="" disabled selected>Select Category</option>
                     {% for category in expense_categories %}
-                    <option value="{{ category.id }}" {% if expense.category.id == category.id %}selected{% endif %}>
-                        {{ category.name }}
-                    </option>
+                        <option value="{{ category.id }}">{{ category.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -37,25 +47,24 @@
             <!-- Description Field -->
             <div class="mb-3">
                 <label class="form-label">Description</label>
-                <textarea name="description" class="form-control bg-dark text-white border-0 rounded">{{ expense.description }}</textarea>
+                <textarea name="description" class="form-control bg-dark text-white border-0 rounded"></textarea>
             </div>
 
             <!-- Date Field -->
             <div class="mb-3">
                 <label class="form-label">Date</label>
-                <input type="date" name="date" class="form-control bg-dark text-white border-0 rounded" value="{{ expense.date|date:'Y-m-d' }}" required>
+                <input type="date" name="date" class="form-control bg-dark text-white border-0 rounded" required>
             </div>
 
             <!-- Is Fixed Field -->
             <div class="form-check mb-3">
-                <input type="checkbox" name="is_fixed" class="form-check-input" id="is_fixed" {% if expense.is_fixed %}checked{% endif %}>
+                <input type="checkbox" name="is_fixed" class="form-check-input" id="is_fixed">
                 <label class="form-check-label" for="is_fixed">Is this a fixed expense?</label>
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="btn btn-success mb-3 w-100">Update Expense</button>
+            <button type="submit" class="btn btn-success mb-3 w-100">Add Expense</button>
 
-            <a href="{% url 'expense-delete' expense.id %}" class="btn btn-danger mb-3 w-100">Delete</a>
 
 
             <p class="text-center mt-3">Go back to your expenses list.</p>
