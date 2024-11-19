@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Add Category{% endblock %}
+
+{% block content %}
+<hr class="my-4">
+
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card text-white shadow-sm p-4" style="width: 100%; max-width: 500px;">
+        <h4 class="text-center mb-4">Add Category</h4>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input name="name" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <div class="mb-3">
+                <select name="category" class="form-control bg-dark text-white border-0 rounded" required>
+                    <option value="" disabled selected>Select Category</option>
+                    {% for value, label in category_types %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-success mb-3 w-100">Add Category</button>
+
+
+
+            <p class="text-center mt-3">Go back to your add expense.</p>
+
+            <!-- Link to Expenses List -->
+            <div class="text-center">
+                <a href="{% url 'expense-add' %}" class="btn btn-dark w-100">Add Expenses</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

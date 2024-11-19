@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Expenes{% endblock %}
+
+{% block content %}
+
+<hr class="my-4">
+
+<!-- Expenses Section (Full Width) -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title">All Expenses</h4>
+            <hr>
+
+            <!-- Filter Options -->
+            <div class="d-flex flex-wrap align-items-center">
+                <div class="me-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-control bg-dark text-white border-0 rounded" required>
+                </div>
+    
+                <div class="me-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-control bg-dark text-white border-0 rounded" required>
+                </div>
+               
+                <!-- Category Field -->
+                <div class="me-3">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-control bg-dark text-white border-0 rounded" required>
+                        <option value="" disabled selected>Select Category</option>
+                        {% for category in expense_categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table text-white">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expense_obj %}  
+                        <tr class="text-white-50">
+                            <th scope="row">{{expense.id}}</th>
+                            <td>₹{{expense.amount}}</td>
+                            <td><span class="badge rounded-pill bg-success">{{expense.category}}</span></td>
+                            <td>{{expense.date}}</td>
+                            <td>{{expense.description}}</td>
+                            <td><a href="{% url 'expense-update' expense.id %}" style="text-decoration: none">Update/Delete</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>            
+            
+            <!-- Total and View All Link -->
+            <hr class="my-2">
+            <div class="d-flex justify-content-between mt-3">
+                <p class="mb-0 text-danger">Total Expenses: ₹{{ request.user.total_expense }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    
+</script>
+
+{% endblock %}

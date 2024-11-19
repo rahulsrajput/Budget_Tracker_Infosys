@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Generate Report{% endblock %}
+
+{% block content %}
+<hr class="my-4">
+
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card text-white shadow-sm p-4" style="width: 100%; max-width: 500px;">
+        <h4 class="text-center mb-4">Generate Report</h4>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            
+            <!-- Date Field -->
+            <div class="mb-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <!-- Date Field -->
+            <div class="mb-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Report Type</label><sup class="text-danger"> pdf or xlsx</sup>
+                <input type="text" name="report_type" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-success mb-3 w-100">Generate</button>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}

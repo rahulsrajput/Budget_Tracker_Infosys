@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<hr class="my-4">
+
+<div class="row">
+    <!-- Expenses Section (Full Width) -->
+    <div class="col-12 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title">Recent Expenses</h4>
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table text-white">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expense_obj %}  
+                        <tr class="text-white-50">
+                            <th scope="row">{{expense.id}}</th>
+                            <td>₹{{expense.amount}}</td>
+                            <td><span class="badge rounded-pill bg-success">{{expense.category}}</span></td>
+                            <td>{{expense.date}}</td>
+                            <td><a href="{% url 'expense-update' expense.id %}" style="text-decoration: none;">Update/Delete</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>            
+            
+            <!-- Total and View All Link -->
+            <hr class="my-2">
+            <div class="d-flex justify-content-between mt-3">
+                <p class="mb-0 text-danger">Total Expenses: ₹{{ request.user.total_expense }}</p>
+                <a href="{% url 'expenses' %}" class="text-decoration-none text-primary">View All</a>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-12 col-md-6 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title">Quick Access</h4>
+            <hr>
+            <div class="row g-3">
+                <!-- Button 1 (will be side by side on large screens) -->
+                <div class="col-12 col-md-6">
+                    <a href="{% url 'expense-add' %}" class="btn btn-primary btn-lg w-100 rounded">+ New expense</a>
+                </div>
+                <!-- Button 2 (will be side by side on large screens) -->
+                <div class="col-12 col-md-6">
+                    <a href="{% url 'income-add' %}" class="btn btn-success btn-lg w-100 rounded">+ New income</a>
+                </div>
+                <!-- Button 3 (will be side by side on large screens) -->
+                <div class="col-12 col-md-6">
+                    <a href="{% url 'budget-add' %}" class="btn btn-success btn-lg w-100 rounded">Set Budget</a>
+                </div>
+                <!-- Button 4 (will be side by side on large screens) -->
+                <div class="col-12 col-md-6">
+                    <a href="{% url 'generate-report' %}" class="btn btn-primary btn-lg w-100 rounded">Generate report</a>
+                </div>
+                <!-- Button 5 -->
+                <div class="col-12 col-md-12">
+                    <a href="{% url 'emi-add' %}" class="btn btn-danger btn-lg w-100 rounded">Set EMI</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- Income Section (Full Width) -->
+    <div class="col-12 col-md-6 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title">Monthly Incomes</h4>
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table text-white">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Source</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for obj in income %}  
+                        <tr class="text-white-50">
+                            <th scope="row">{{obj.id}}</th>
+                            <td>₹{{obj.amount}}</td>
+                            <td><span class="badge rounded-pill bg-success">{{obj.category | capfirst}}</span></td>
+                            <td>{{obj.date}}</td>
+                            <td><a href="{% url 'income-update' obj.id %}" style="text-decoration: none;">Update/Delete</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>            
+            
+            <!-- Total and View All Link -->
+            <hr class="my-2">
+            <div class="d-flex justify-content-between mt-3">
+                <p class="mb-0 text-danger">Total Expenses: ₹{{ request.user.total_income }}</p>
+                <p class="mb-0 text-success">Total Saving: ₹{{ request.user.total_savings }}</a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Budget and EMI Section -->
+    <div class="col-12 col-md-6 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title">Recent Budgets</h4>
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table text-white">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Amount Limit</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Start Date</th>
+                            <th scope="col">End Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for budget in budgets %}  
+                        <tr class="text-white-50">
+                            <th scope="row">{{budget.id}}</th>
+                            <td>₹{{budget.amount_limit}}</td>
+                            <td><span class="badge rounded-pill bg-success">{{budget.category | capfirst}}</span></td>
+                            <td>{{budget.start_date}}</td>
+                            <td>{{budget.end_date}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>            
+            
+            <!-- Total and View All Link -->
+            <hr class="my-2">
+            <div class="d-flex justify-content-between mt-3">
+                <p class="mb-0 text-danger">Total Budget: ₹{{ request.user.total_budget }}</p>
+                <a href="{% url 'budgets' %}" class="text-decoration-none text-primary">View All</a>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="col-12 col-md-6 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title">Recent EMIs</h4>
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table text-white">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Start Date</th>
+                            <th scope="col">End Date</th>
+                            <th scope="col">Frequency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emi in emis %}  
+                        <tr class="text-white-50">
+                            <th scope="row">{{emi.id}}</th>
+                            <td>₹{{emi.amount}}</td>
+                            <td>{{emi.start_date}}</td>
+                            <td>{{emi.end_date}}</td>
+                            <td>{{emi.frequency}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>            
+            
+            <!-- Total and View All Link -->
+            <hr class="my-2">
+            <div class="d-flex justify-content-between mt-3">
+                <p class="mb-0 text-danger">Total EMIs: ₹{{ request.user.total_emi }}</p>
+                <a href="{% url 'emi' %}" class="text-decoration-none text-primary">View All</a>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Pie Report Section -->
+    <div class="col-12 col-md-6 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title mb-3">Expense vs Income Report</h4>
+            <div class="d-flex justify-content-between mt-4">
+                <!-- Pie Chart -->
+                <div style="width: 150px; height: 150px; flex-shrink: 0;">
+                    <canvas id="myPieChart"></canvas>
+                </div>
+    
+                <!-- Labels and Colors -->
+                <div class="ms-4">
+                    <ul class="list-unstyled">
+                        <li class="d-flex align-items-center mb-2">
+                            <span class="legend-color" style="background-color: rgba(75, 192, 192, 0.7);"></span>
+                            <span class="ms-2">Income</span>
+                        </li>
+                        <li class="d-flex align-items-center mb-2">
+                            <span class="legend-color" style="background-color: rgba(255, 99, 132, 0.7);"></span>
+                            <span class="ms-2">Expense</span>
+                        </li>
+                        <li class="d-flex align-items-center mb-2">
+                            <span class="legend-color" style="background-color: rgba(54, 162, 235, 0.7);"></span>
+                            <span class="ms-2">EMI</span>
+                        </li>
+                        <li class="d-flex align-items-center mb-2">
+                            <span class="legend-color" style="background-color: rgba(255, 206, 86, 0.7);"></span>
+                            <span class="ms-2">Budget</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+
+</div>
+
+
+
+
+<script>
+    // Parse JSON safely into a JavaScript object
+    const data = JSON.parse('{{ data|safe }}');
+    console.log(data);
+
+    const ctx = document.getElementById('myPieChart').getContext('2d');
+
+    // Create a Pie Chart using Chart.js
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Income', 'Expense', 'EMI', 'Budget'],
+            datasets: [{
+                label: 'Overview',
+                data: [data.income, data.expense, data.emi, data.budget],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.7)', // Green for Income
+                    'rgba(255, 99, 132, 0.7)', // Red for Expense
+                    'rgba(54, 162, 235, 0.7)', // Blue for EMI
+                    'rgba(255, 206, 86, 0.7)'  // Yellow for Budget
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false, // Hide Chart.js legend
+                },
+            }
+        }
+    });
+</script>
+
+
+
+
+{% endblock %}

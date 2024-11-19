@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Update Budget{% endblock %}
+
+{% block content %}
+<hr class="my-4">
+
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card text-white shadow-sm p-4" style="width: 100%; max-width: 500px;">
+        <h4 class="text-center mb-4">Update Budget</h4>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Amount Field -->
+            <div class="mb-3">
+                <label class="form-label">Amount Limit</label>
+                <input type="number" step="0.01" name="amount_limit" value="{{budget.amount_limit}}" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <!-- Category Field -->
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-control bg-dark text-white border-0 rounded" required>
+                    <option value="" disabled selected>Select Category</option>
+                    {% for category in expense_categories %}
+                    <option value="{{ category.id }}" {% if budget.category.id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+            <!-- Date Field -->
+            <div class="mb-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" value="{{budget.start_date | date:'Y-m-d'}}" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+            
+            
+            <!-- Date Field -->
+            <div class="mb-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" value="{{budget.end_date | date:'Y-m-d'}}" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-success mb-3 w-100">Update Budget</button>
+            
+            <a href="{% url 'budget-delete' budget.id %}" class="btn btn-danger mb-3 w-100">Delete</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

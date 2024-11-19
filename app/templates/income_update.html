@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Update Income{% endblock %}
+
+{% block content %}
+<hr class="my-4">
+
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card text-white shadow-sm p-4" style="width: 100%; max-width: 500px;">
+        <h4 class="text-center mb-4">Update Income</h4>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Amount Field -->
+            <div class="mb-3">
+                <label class="form-label">Amount</label>
+                <input type="number" step="0.01" name="amount" value="{{income.amount}}" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <!-- Category Field -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                    <label class="form-label">Category</label>
+                    <a href="{% url 'category-add' %}" class="text-success">+Add Category</a>
+                </div>
+                <select name="category" class="form-control bg-dark text-white border-0 rounded" required>
+                    <option value="" disabled>Select Category</option>
+                    {% for category in income_categories %}
+                    <option value="{{ category.id }}" {% if income.category.id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Description Field -->
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control bg-dark text-white border-0 rounded">{{income.description}}</textarea>
+            </div>
+
+            <!-- Date Field -->
+            <div class="mb-3">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" value="{{income.date|date:'Y-m-d'}}" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-success mb-3 w-100">Update Income</button>
+            
+            <a href="{% url 'income-delete' income.id %}" class="btn btn-danger mb-3 w-100">Delete</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

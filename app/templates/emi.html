@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}EMI{% endblock %}
+
+{% block content %}
+
+<hr class="my-4">
+
+<!-- Expenses Section (Full Width) -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title">All EMI</h4>
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table text-white">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Start Date</th>
+                            <th scope="col">End Date</th>
+                            <th scope="col">Next Payment Date</th>
+                            <th scope="col">Frequency</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emi in emis %}  
+                        <tr class="text-white-50">
+                            <th scope="row">{{emi.id}}</th>
+                            <td>₹{{emi.amount}}</td>
+                            <td>{{emi.start_date}}</td>
+                            <td>{{emi.end_date}}</td>
+                            <td>{{emi.next_payment_date}}</td>
+                            <td>{{emi.frequency}}</td>
+                            <td>{{emi.description}}</td>
+                            <td><a href="{% url 'emi-update' emi.id %}" style="text-decoration: none">Update/Delete</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>            
+            
+            <!-- Total and View All Link -->
+            <hr class="my-2">
+            <div class="d-flex justify-content-between mt-3">
+                <p class="mb-0 text-danger">Total EMIs: ₹{{request.user.total_emi}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

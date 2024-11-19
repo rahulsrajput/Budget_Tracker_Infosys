@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<hr class="my-4">
+
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card text-white shadow-sm p-4" style="width: 100%; max-width: 500px;">
+        <h4 class="text-center mb-4">Register</h4>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Email Field -->
+             <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+            
+            <!-- Username Field -->
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <!-- name field -->
+            <div>
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+        
+            <!-- number field -->
+            <div>
+                <label class="form-label">Phone Number</label>
+                <input type="number" name="phone" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password1" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <!-- Password Confirmation Field -->
+            <div class="mb-3">
+                <label class="form-label">Password Confirmation</label>
+                <input type="password" name="password2" class="form-control bg-dark text-white border-0 rounded" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-success mb-3 w-100">Register</button>
+
+            <!-- Display Django messages (if any) -->
+            {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                        <div class="alert alert-warning">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <p class="text-center mt-3">Already have an account?</p>
+
+            <!-- Link to Login Page -->
+            <div class="text-center">
+                <a href="{% url 'login' %}" class="btn btn-dark w-100">Login</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

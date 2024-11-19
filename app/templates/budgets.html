@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Budgets{% endblock %}
+
+{% block content %}
+
+<hr class="my-4">
+
+<!-- Expenses Section (Full Width) -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card text-white shadow-sm p-4">
+            <h4 class="card-title">All Budgets</h4>
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table text-white">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Amount Limit</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Start Date</th>
+                            <th scope="col">End Date</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for budget in budgets %}  
+                        <tr class="text-white-50">
+                            <th scope="row">{{budget.id}}</th>
+                            <td>₹{{budget.amount_limit}}</td>
+                            <td><span class="badge rounded-pill bg-success">{{budget.category}}</span></td>
+                            <td>{{budget.start_date}}</td>
+                            <td>{{budget.end_date}}</td>
+                            <td><a href="{% url 'budget-update' budget.id %}" style="text-decoration: none">Update/Delete</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>            
+            
+            <!-- Total and View All Link -->
+            <hr class="my-2">
+            <div class="d-flex justify-content-between mt-3">
+                <p class="mb-0 text-danger">Total Budget: ₹{{request.user.total_budget}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
