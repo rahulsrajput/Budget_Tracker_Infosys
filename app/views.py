@@ -132,11 +132,31 @@ def category_add(request):
 def expenses_view(request):     
     # Get all expenses for the current user, ordered by date
     expense_obj = Expense.objects.filter(user=request.user).order_by('-date')
-    # Calculate the total expenses for the user (use `or` to handle case where no expenses exist)
-    total_expenses = expense_obj.aggregate(Sum('amount'))['amount__sum'] or 0
-    # Get categories where the category_type is 'Expense'
     expense_categories = request.user.categories.filter(category_type='Expense')
-    return render(request, 'expense/expenses.html', context={'expense_obj':expense_obj, 'total_expenses':total_expenses, 'expense_categories':expense_categories})
+
+    # Handle filtering logic
+    start_date = request.POST.get('start_date')
+    end_date = request.POST.get('end_date')
+    category_id = request.POST.get('category')
+
+    
+    if start_date: #Include expenses on or after the start_date
+        expense_obj = expense_obj.filter(date__gte=start_date)
+    if end_date:   #Include expenses on or before the end_date
+        expense_obj = expense_obj.filter(date__lte=end_date)
+    if category_id: #Include expenses that match the selected category ID
+        expense_obj = expense_obj.filter(category__id=category_id)
+
+    context = {
+        'expense_obj':expense_obj, 
+        'expense_categories':expense_categories,
+        'filters': {
+            'start_date': start_date,
+            'end_date': end_date,
+            'category_id': int(category_id) if category_id else None,
+        },
+    }
+    return render(request, 'expense/expenses.html', context)
 
 
 @login_required(login_url='login')
@@ -147,17 +167,11 @@ def expense_add_view(request):
         category_id = request.POST.get('category')
         date = request.POST.get('date')
         is_fixed = 'is_fixed' in request.POST
-
-        # Validate input fields
-        if not amount or not description or not category_id or not date:
-            messages.error(request, "All fields are required.")
-            return redirect('expense-add')  # Redirect back to the form
         try:
             # Retrieve the selected category from the database
             category = Category.objects.get(id=category_id, user=request.user)  # Ensure the category belongs to the user
-            # Save the new expense record
             Expense.objects.create(user=request.user ,amount=amount, description=description, category=category, date=date, is_fixed=is_fixed)
-            return redirect('home')
+            return redirect('expenses')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
             return redirect('expense-add')
@@ -168,7 +182,6 @@ def expense_add_view(request):
 
 @login_required(login_url='login')
 def expense_update_view(request, id):
-
     # Retrieve the expense object for the logged-in user
     expense = get_object_or_404(Expense, user=request.user, id=id)
     expense_categories = request.user.categories.filter(category_type='Expense')
@@ -225,12 +238,6 @@ def income_add_view(request):
         description = request.POST.get('description')
         date = request.POST.get('date')
         category_id = request.POST.get('category')
-
-        # Validate input
-        if not amount or not date or not category_id:
-            messages.error(request, "Amount, Date, and Category are required fields.")
-            return redirect('income-add')
-
         try:
             if amount <= 0:
                 messages.error(request, "Amount must be greater than zero.")
@@ -241,9 +248,11 @@ def income_add_view(request):
             # Save the new income record
             Income.objects.create(user=request.user, amount=amount, description=description, date=date, category=category)
             messages.success(request, "Income added successfully.")
-            return redirect('home')
+            return redirect('income')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('income')
+
     
     # Fetch income categories for the dropdown
     income_categories = request.user.categories.filter(category_type='Income')
@@ -258,11 +267,6 @@ def income_update_view(request, id):
         description = request.POST.get('description')
         date = request.POST.get('date')
         category_id = request.POST.get('category')
-
-        # Validate input
-        if not amount or not date or not category_id:
-            messages.error(request, "Amount, Date, and Category are required fields.")
-            return redirect('income-update', id=id)
         
         # Save the new income record
         try:
@@ -279,10 +283,11 @@ def income_update_view(request, id):
             income.save()
             
             messages.success(request, "Income updated successfully.")
-            return redirect('home')
+            return redirect('income')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
-
+            return redirect('income')
+        
     income_categories = request.user.categories.filter(category_type='Income')
     return render(request, 'income/income_update.html', context={'income':income,'income_categories':income_categories})
 
@@ -324,7 +329,7 @@ def budget_add_view(request):
         category = Category.objects.get(id=category_id)
         budget = Budget.objects.create(user=request.user, amount_limit=amount_limit, start_date=start_date, end_date=end_date, category=category)
         budget.save()
-        return redirect('home')
+        return redirect('budgets')
     return render(request, 'budget/budget_add.html', context={'expense_categories':expense_categories})
 
 
@@ -349,6 +354,7 @@ def budget_update_view(request, id):
             return redirect('budgets')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('budgets')
 
     return render(request, 'budget/budget_update.html', context={'budget':budget, 'expense_categories':expense_categories})
 
@@ -381,8 +387,8 @@ def emi_add_view(request):
         frequency = request.POST.get('frequency')
         emi = EMI.objects.create(user=request.user, amount=amount, next_payment_date=next_payment_date, start_date=start_date, end_date=end_date, description=description, frequency=frequency)
         emi.save()
-        return redirect('home')
-    return render(request, 'emi/emi_add.html',context={})
+        return redirect('emi')
+    return render(request, 'emi/emi_add.html')
 
 
 @login_required(login_url='login')
@@ -408,6 +414,7 @@ def emi_update_view(request, id):
             return redirect('emi')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('emi')
 
     return render(request, 'emi/emi_update.html',context={'emi':emi})
 

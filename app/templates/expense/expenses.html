@@ -5,6 +5,19 @@
 
 <hr class="my-4">
 
+
+<!-- start Messages Block -->
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-light text-dark alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+<!-- End Messages Block -->
+
+
 <!-- Expenses Section (Full Width) -->
 <div class="row">
     <div class="col-12 mb-4">
@@ -26,22 +39,26 @@
                 <!-- Start Date -->
                 <div class="me-3">
                     <label for="start_date" class="form-label">Start Date</label>
-                    <input type="date" id="start_date" name="start_date" class="form-control bg-dark text-white border-0 rounded">
+                    <input type="date" id="start_date" name="start_date" class="form-control bg-dark text-white border-0 rounded"
+                           value="{{ filters.start_date }}">
                 </div>
             
                 <!-- End Date -->
                 <div class="me-3">
                     <label for="end_date" class="form-label">End Date</label>
-                    <input type="date" id="end_date" name="end_date" class="form-control bg-dark text-white border-0 rounded">
+                    <input type="date" id="end_date" name="end_date" class="form-control bg-dark text-white border-0 rounded"
+                           value="{{ filters.end_date }}">
                 </div>
-                
+            
                 <!-- Category Field -->
                 <div class="me-3">
                     <label for="category" class="form-label">Category</label>
                     <select id="category" name="category" class="form-control bg-dark text-white border-0 rounded">
-                        <option value="" disabled selected>Select Category</option>
+                        <option value="" disabled {% if not filters.category_id %}selected{% endif %}>Select Category</option>
                         {% for category in expense_categories %}
-                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            <option value="{{ category.id }}" {% if filters.category_id == category.id %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -52,6 +69,7 @@
                     <button type="submit" class="form-control bg-success text-white border-0 rounded">Submit</button>
                 </div>
             </form>
+            
             
             <hr>
 
