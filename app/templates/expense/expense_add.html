@@ -32,10 +32,7 @@
 
             <!-- Category Field -->
             <div class="mb-3">
-                <div class="d-flex justify-content-between">
-                    <label class="form-label">Category</label>
-                    <a href="{% url 'category-add' %}" class="text-success">+Add Category</a>
-                </div>
+                <label class="form-label">Category</label>
                 <select name="category" class="form-control bg-dark text-white border-0 rounded" required>
                     <option value="" disabled selected>Select Category</option>
                     {% for category in expense_categories %}

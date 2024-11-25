@@ -27,10 +27,15 @@
             </div>
             
             
-            <!-- Description Field -->
+            <!-- Frequency Field -->
             <div class="mb-3">
                 <label class="form-label">Frequency</label>
-                <input type="text" name="frequency" class="form-control bg-dark text-white border-0 rounded">
+                <select name="frequency" class="form-select bg-dark text-white border-0 rounded" required>
+                    <option value="" disabled selected>Select Frequency</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Quarterly">Quarterly</option>
+                </select>
             </div>
 
             

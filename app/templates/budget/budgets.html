@@ -9,7 +9,14 @@
 <div class="row">
     <div class="col-12 mb-4">
         <div class="card text-white shadow-sm p-4">
-            <h4 class="card-title">All Budgets</h4>
+            <div class="d-flex justify-content-between">
+                <h4 class="card-title mb-0">All Budgets</h4>
+                <div>
+                    <a href="{% url 'budget-add' %}" class="btn btn-sm btn-success">Add Budget</a>
+                    <a href="{% url 'category-add' %}" class="btn btn-sm btn-success">Add Category</a>
+                </div>
+            </div>
+            
             <hr>
 
             <div class="table-responsive">

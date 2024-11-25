@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}EMI{% endblock %}
+{% block title %}Income{% endblock %}
 
 {% block content %}
 
@@ -10,13 +10,12 @@
     <div class="col-12 mb-4">
         <div class="card text-white shadow-sm p-4">
             <div class="d-flex justify-content-between">
-                <h4 class="card-title mb-0">All EMI</h4>
+                <h4 class="card-title mb-0">All Incomes</h4>
                 <div>
-                    <a href="{% url 'emi-add' %}" class="btn btn-sm btn-success">Add EMI</a>
+                    <a href="{% url 'income-add' %}" class="btn btn-sm btn-success">Add Income</a>
                     <a href="{% url 'category-add' %}" class="btn btn-sm btn-success">Add Category</a>
                 </div>
-            </div>            
-            
+            </div>
             <hr>
 
             <div class="table-responsive">
@@ -25,25 +24,21 @@
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">Amount</th>
-                            <th scope="col">Start Date</th>
-                            <th scope="col">End Date</th>
-                            <th scope="col">Next Payment Date</th>
-                            <th scope="col">Frequency</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Date</th>
                             <th scope="col">Description</th>
                             <th scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for emi in emis %}  
+                        {% for income in incomes %}  
                         <tr class="text-white-50">
-                            <th scope="row">{{emi.id}}</th>
-                            <td>₹{{emi.amount}}</td>
-                            <td>{{emi.start_date}}</td>
-                            <td>{{emi.end_date}}</td>
-                            <td>{{emi.next_payment_date}}</td>
-                            <td>{{emi.frequency}}</td>
-                            <td>{{emi.description}}</td>
-                            <td><a href="{% url 'emi-update' emi.id %}" style="text-decoration: none">Update/Delete</a></td>
+                            <th scope="row">{{income.id}}</th>
+                            <td>₹{{income.amount}}</td>
+                            <td><span class="badge rounded-pill bg-success">{{income.category}}</span></td>
+                            <td>{{income.date}}</td>
+                            <td>{% if income.description %}  {{income.description}} {% else %}  None  {% endif %}</td>
+                            <td><a href="{% url 'income-update' income.id %}" style="text-decoration: none">Update/Delete</a></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -53,10 +48,15 @@
             <!-- Total and View All Link -->
             <hr class="my-2">
             <div class="d-flex justify-content-between mt-3">
-                <p class="mb-0 text-danger">Total EMIs: ₹{{request.user.total_emi}}</p>
+                <p class="mb-0 text-danger">Total Expenses: ₹{{ request.user.total_expense }}</p>
             </div>
         </div>
     </div>
 </div>
+
+
+<script>
+    
+</script>
 
 {% endblock %}

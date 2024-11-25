@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<hr class="my-4">
+
+
+<!-- Filter Options -->
+<form method="POST" class="d-flex flex-wrap align-items-center">
+    {% csrf_token %}
+    
+    <!-- Start Date -->
+    <div class="me-3">
+        <label for="start_date" class="form-label">Start Date</label>
+        <input type="date" id="start_date" name="start_date" class="form-control bg-dark text-white border-0 rounded">
+    </div>
+
+    <!-- End Date -->
+    <div class="me-3">
+        <label for="end_date" class="form-label">End Date</label>
+        <input type="date" id="end_date" name="end_date" class="form-control bg-dark text-white border-0 rounded">
+    </div>
+    
+    <!-- Category Field -->
+    <div class="me-3">
+        <label for="category" class="form-label">Category</label>
+        <select id="category" name="category" class="form-control bg-dark text-white border-0 rounded">
+            <option value="" disabled selected>Select Category</option>
+            {% for category in expense_categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Submit Button -->
+    <div>
+        <label for="end_date" class="form-label">Apply Filter</label>
+        <button type="submit" class="form-control bg-success text-white border-0 rounded">Submit</button>
+    </div>
+</form>
+
+
+<hr class="my-4">
+
+<div class="row my-4">
+    <!-- Summary Card -->
+    <div class="col-12">
+        <div class="card shadow-sm text-white bg-dark p-4">
+            <h4 class="card-title">Summary Report</h4>
+            <hr>
+            <div class="row">
+                <!-- Total Income -->
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-success text-white text-center shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">Total Income</h5>
+                            <p class="card-text fs-4">₹{{ total_income }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Expense -->
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-danger text-white text-center shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger">Total Expense</h5>
+                            <p class="card-text fs-4">₹{{ total_expense }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total EMI -->
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-info text-white text-center shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">Total EMI</h5>
+                            <p class="card-text fs-4">₹{{ total_emi }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-4">
+
+
+
+{% endblock %}

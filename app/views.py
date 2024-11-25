@@ -15,20 +15,13 @@ User = get_user_model()
 
 @login_required(login_url='login')
 def home_view(request):
-    income = Income.objects.filter(user=request.user)
-    
-    expense_obj = Expense.objects.filter(user=request.user).order_by('-date')[:4]    
+    return render(request, 'home.html')
 
-    budgets = request.user.budgets.all().order_by('-amount_limit')[:2]
 
-    emis = request.user.emis.all().order_by('-amount')[:2]
 
-    data = {
-        "income": float(request.user.total_income()),
-        "expense": float(request.user.total_expense()),
-        "emi": float(request.user.total_emi()),
-    }
-    return render(request, 'home.html', context={'expense_obj':expense_obj, 'income':income,  'budgets':budgets, 'emis':emis, 'data':json.dumps(data)})
+@login_required(login_url='login')
+def dashboard_view(request):
+    return render(request, 'dashboard.html')
 
 
 
@@ -219,6 +212,12 @@ def expense_delete_view(request, id):
 
 
 # Income
+@login_required(login_url='login')
+def income_view(request):
+    incomes = Income.objects.filter(user=request.user).order_by('-date')
+    return render(request, 'income/income.html', context={'incomes':incomes})
+
+
 @login_required(login_url='login')
 def income_add_view(request):
     if request.method == "POST":

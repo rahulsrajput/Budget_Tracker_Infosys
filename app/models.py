@@ -301,6 +301,12 @@ class Report(models.Model):
 class EMI(models.Model):
     # Define a Django model named 'EMI', which represents Equated Monthly Installments for users.
 
+    FREQUENCY_CHOICES = [
+        ('Monthly', 'Monthly'),
+        ('Weekly', 'Weekly'),
+        ('Quarterly', 'Quarterly'),
+    ]
+
     user = models.ForeignKey(  # Foreign key to associate EMIs with a user.
         User,  # Refers to the User model.
         on_delete=models.CASCADE,  # Deletes EMI records if the associated user is deleted.
@@ -316,8 +322,10 @@ class EMI(models.Model):
 
     end_date = models.DateField()  # Field to store the end date of the EMI.
 
-    frequency = models.CharField(  # Field to specify the frequency of EMI payments.
-        max_length=20  # Maximum length of the frequency string (e.g., "Monthly").
+    frequency = models.CharField(
+        max_length=20,  # Maximum length of the frequency string.
+        choices=FREQUENCY_CHOICES,  # Add predefined choices for frequency.
+        default='Monthly'  # Set default value for the frequency field.
     )
 
     description = models.TextField(  # Field to store an optional description of the EMI.
