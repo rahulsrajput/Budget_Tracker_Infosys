@@ -13,7 +13,6 @@ from django.contrib import messages
 User = get_user_model()
 
 
-@login_required(login_url='login')
 def home_view(request):
     return render(request, 'home.html')
 
@@ -21,7 +20,47 @@ def home_view(request):
 
 @login_required(login_url='login')
 def dashboard_view(request):
-    return render(request, 'dashboard.html')
+    filters = {}
+    expenses = request.user.expenses.all()  # All expenses for the user
+    incomes = request.user.income.all()  # All incomes for the user
+    emis = request.user.emis.all()  # All EMIs for the user
+
+    # Filter logic
+    if request.method == "POST":
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        category_id = request.POST.get('category')
+
+        if start_date:
+            filters['start_date'] = start_date
+            expenses = expenses.filter(date__gte=start_date)
+            incomes = incomes.filter(date__gte=start_date)
+            emis = emis.filter(start_date__gte=start_date)
+
+        if end_date:
+            filters['end_date'] = end_date
+            expenses = expenses.filter(date__lte=end_date)
+            incomes = incomes.filter(date__lte=end_date)
+            emis = emis.filter(end_date__lte=end_date)
+
+        if category_id:
+            filters['category_id'] = int(category_id)
+            expenses = expenses.filter(category_id=category_id)
+
+    # Calculate totals
+    total_income = sum(income.amount for income in incomes)
+    total_expense = sum(expense.amount for expense in expenses)
+    total_emi = sum(emi.amount for emi in emis)
+
+    # Render the template
+    return render(request, 'dashboard.html', {
+        'filters': filters,
+        'expense_categories': request.user.categories.filter(category_type='Expense'),
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'total_emi': total_emi,
+    })
+
 
 
 
@@ -215,7 +254,7 @@ def expense_update_view(request, id):
 def expense_delete_view(request, id):
     expense_id = get_object_or_404(Expense, user=request.user, id=id)
     expense_id.delete()
-    return redirect('home')
+    return redirect('expenses')
     
 
 
@@ -239,10 +278,6 @@ def income_add_view(request):
         date = request.POST.get('date')
         category_id = request.POST.get('category')
         try:
-            if amount <= 0:
-                messages.error(request, "Amount must be greater than zero.")
-                return redirect('income-add')
-            
             # Get the category
             category = get_object_or_404(Category, id=category_id, user=request.user)
             # Save the new income record
@@ -270,10 +305,6 @@ def income_update_view(request, id):
         
         # Save the new income record
         try:
-            if amount <= 0:
-                messages.error(request, "Amount must be greater than zero.")
-                return redirect('income-update', id=id)
-            
             category = Category.objects.get(id=category_id)
             
             income.amount = amount
@@ -297,7 +328,7 @@ def income_update_view(request, id):
 def income_delete_view(request, id):
     income = get_object_or_404(Income, user=request.user, id=id)
     income.delete()
-    return redirect('home')
+    return redirect('income')
 
 
 
@@ -363,7 +394,7 @@ def budget_update_view(request, id):
 def budget_delete_view(request, id):
     budget = get_object_or_404(Budget, user=request.user, id=id)
     budget.delete()
-    return redirect('home')
+    return redirect('budgets')
 
 
 
@@ -423,7 +454,7 @@ def emi_update_view(request, id):
 def emi_delete_view(request, id):
     emi = get_object_or_404(EMI, user=request.user, id=id)
     emi.delete()
-    return redirect('home')
+    return redirect('emi')
 
 
 
