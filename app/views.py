@@ -9,6 +9,11 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
+from datetime import datetime
+
 # Create your views here.
 User = get_user_model()
 
@@ -78,6 +83,10 @@ def login_view(request):
 
         if user_obj is not None:
             login(request, user_obj)
+
+            # Trigger the check and add due EMI expenses
+            check_and_create_due_emi_expenses(request)
+
             return redirect('home')  # Redirect to your desired page after login
         else:
             messages.error(request, "Invalid email or password.")
@@ -411,15 +420,67 @@ def emi_view(request):
 def emi_add_view(request):
     if request.method == "POST":
         amount = request.POST.get('amount')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        next_payment_date = request.POST.get('next_payment_date')
+        start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').date()
+        end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d').date()
+        next_payment_date = datetime.strptime(request.POST.get('next_payment_date'), '%Y-%m-%d').date()
         description = request.POST.get('description')
         frequency = request.POST.get('frequency')
-        emi = EMI.objects.create(user=request.user, amount=amount, next_payment_date=next_payment_date, start_date=start_date, end_date=end_date, description=description, frequency=frequency)
-        emi.save()
+
+        # Frequency mapping and validation
+        frequency_mapping = {
+            'Monthly': relativedelta(months=1),
+            'Weekly': timedelta(weeks=1),
+            'Quarterly': relativedelta(months=3)
+        }
+        # Check if the frequency is valid and if the next payment date is correct
+        if frequency in frequency_mapping:
+            expected_next_payment_date = start_date + frequency_mapping[frequency]
+
+            if next_payment_date != expected_next_payment_date:
+                messages.error(request, f"Next payment date is incorrect for {frequency} frequency.")
+                return redirect('emi-add')
+
+        # Create EMI instance and save it
+        EMI.objects.create(user=request.user, amount=amount, next_payment_date=next_payment_date, start_date=start_date, end_date=end_date, description=description, frequency=frequency)
+        # Redirect to the EMI page after saving
         return redirect('emi')
+
     return render(request, 'emi/emi_add.html')
+
+
+
+
+# View to check and add all due EMI payments to expenses whenever the user interacts with the site
+@login_required(login_url='login')
+def check_and_create_due_emi_expenses(request):
+    today = timezone.now().date()  # Get today's date
+
+    # Find all EMIs due today or in the past (up to today)
+    em_is_due = EMI.objects.filter(user=request.user, next_payment_date__lte=today)
+
+    for emi in em_is_due:
+        # Create the expense for every due EMI (including today if due)
+        while emi.next_payment_date <= today:
+            category, created = Category.objects.get_or_create(name="EMI",category_type='EXPENSE')
+            Expense.objects.create(
+                user=request.user,
+                amount=emi.amount,
+                category=category,
+                date=emi.next_payment_date,
+                description=f"EMI Payment: {emi.description}",
+                is_fixed=True
+            )
+            # Update the next payment date based on the frequency
+            if emi.frequency == 'Monthly':
+                emi.next_payment_date += relativedelta(months=1)
+            elif emi.frequency == 'Weekly':
+                emi.next_payment_date += timedelta(weeks=1)
+            elif emi.frequency == 'Quarterly':
+                emi.next_payment_date += relativedelta(months=3)
+            emi.save()
+
+    return redirect('emi')
+
 
 
 @login_required(login_url='login')
@@ -428,9 +489,9 @@ def emi_update_view(request, id):
     
     if request.method == "POST":
         amount = request.POST.get('amount')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        next_payment_date = request.POST.get('next_payment_date')
+        start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').date()
+        end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d').date()
+        next_payment_date = datetime.strptime(request.POST.get('next_payment_date'), '%Y-%m-%d').date()
         description = request.POST.get('description')
         frequency = request.POST.get('frequency')
 
