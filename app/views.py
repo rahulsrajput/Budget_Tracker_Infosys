@@ -416,6 +416,9 @@ def emi_view(request):
     return render(request, 'emi/emi.html',context={'emis':emis})
 
 
+# relativedelta: Handles complex date increments like months or quarters where the day might adjust (e.g., February to March).
+# timedelta: Handles simple, fixed time intervals like weeks or days.
+# datetime.strptime: Converts date strings (e.g., 2024-12-02) into datetime.date objects for manipulation.
 @login_required(login_url='login')
 def emi_add_view(request):
     if request.method == "POST":
