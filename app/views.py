@@ -460,8 +460,8 @@ def check_and_create_due_emi_expenses(request):
 
     for emi in em_is_due:
         # Create the expense for every due EMI (including today if due)
-        while emi.next_payment_date <= today:
-            category, created = Category.objects.get_or_create(name="EMI",category_type='EXPENSE')
+        while emi.next_payment_date <= today and emi.next_payment_date <= emi.end_date:
+            category, created = Category.objects.get_or_create(name="EMI", category_type='EXPENSE')
             Expense.objects.create(
                 user=request.user,
                 amount=emi.amount,
