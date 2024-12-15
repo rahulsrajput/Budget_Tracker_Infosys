@@ -352,58 +352,6 @@ def income_delete_view(request, id):
 
 
 # Budget
-@login_required(login_url='login')
-def budgets_view(request):
-    budgets = request.user.budgets.all()
-    return render(request, 'budget/budgets.html', context={'budgets':budgets})
-
-
-@login_required(login_url='login')
-def budget_add_view(request):
-    expense_categories = request.user.categories.filter(category_type='Expense')
-    if request.method == "POST":
-        amount_limit = request.POST.get('amount_limit')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        category_id = request.POST.get('category')
-        category = Category.objects.get(id=category_id)
-        budget = Budget.objects.create(user=request.user, amount_limit=amount_limit, start_date=start_date, end_date=end_date, category=category)
-        budget.save()
-        return redirect('budgets')
-    return render(request, 'budget/budget_add.html', context={'expense_categories':expense_categories})
-
-
-@login_required(login_url='login')
-def budget_update_view(request, id):
-    budget = get_object_or_404(Budget, user=request.user, id=id)
-    expense_categories = request.user.categories.filter(category_type='Expense')
-    
-    if request.method == "POST":
-        amount_limit = request.POST.get('amount_limit')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        category_id = request.POST.get('category')
-        category = Category.objects.get(id=category_id)
-
-        try:
-            budget.amount_limit = amount_limit
-            budget.start_date = start_date
-            budget.end_date = end_date
-            budget.category = category
-            budget.save()
-            return redirect('budgets')
-        except Exception as e:
-            messages.error(request, f"An error occurred: {str(e)}")
-            return redirect('budgets')
-
-    return render(request, 'budget/budget_update.html', context={'budget':budget, 'expense_categories':expense_categories})
-
-
-@login_required(login_url='login')
-def budget_delete_view(request, id):
-    budget = get_object_or_404(Budget, user=request.user, id=id)
-    budget.delete()
-    return redirect('budgets')
 
 
 
