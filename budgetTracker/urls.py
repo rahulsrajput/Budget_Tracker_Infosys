@@ -46,11 +46,7 @@ urlpatterns = [
 
 
     #
-    path('budgets/', views.budgets_view, name='budgets'),
-    path('budget/add', views.budget_add_view, name='budget-add'),
-    path('budget/update/<int:id>', views.budget_update_view, name='budget-update'),
-    path('budget/delete/<int:id>', views.budget_delete_view, name='budget-delete'),
-
+  
 
     #
     path('emi/', views.emi_view, name='emi'),
