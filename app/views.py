@@ -81,7 +81,7 @@ def dashboard_view(request):
     for item in category_expenses
     ]
     
-    # print(category_data)
+    print(category_data)
     # print(category_expenses)
 
     # Render the template
