@@ -52,11 +52,16 @@
     <!-- Summary Card -->
     <div class="col-12">
         <div class="card shadow-sm text-white bg-dark p-4">
-            <h4 class="card-title">Summary Report</h4>
+            <div class="d-flex justify-content-between">
+                <h4 class="card-title mb-0">Summary Report</h4>
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    <a href="{% url 'generate-report' %}" class="btn btn-sm btn-warning">Download Report</a>
+                </div>
+            </div>
             <hr>
             <div class="row">
                 <!-- Total Income -->
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <div class="card bg-success text-white text-center shadow">
                         <div class="card-body">
                             <h5 class="card-title text-success">Total Income</h5>
@@ -66,7 +71,7 @@
                 </div>
 
                 <!-- Total Expense -->
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <div class="card bg-danger text-white text-center shadow">
                         <div class="card-body">
                             <h5 class="card-title text-danger">Total Expense</h5>
@@ -76,11 +81,21 @@
                 </div>
 
                 <!-- Total EMI -->
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <div class="card bg-info text-white text-center shadow">
                         <div class="card-body">
                             <h5 class="card-title text-warning">Total EMI</h5>
                             <p class="card-text fs-4">₹{{ total_emi }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total EMI -->
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-info text-white text-center shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">Total Saving</h5>
+                            <p class="card-text fs-4">₹{{ total_savings }}</p>
                         </div>
                     </div>
                 </div>
@@ -91,6 +106,144 @@
 
 <hr class="my-4">
 
+
+<!-- Pie Chart Section -->
+<div class="row my-4">
+    <div class="col-6">
+        <div class="card shadow-sm text-white bg-dark p-4">
+            <h4 class="card-title">Summary Pie Chart</h4>
+            <canvas id="summaryPieChart"></canvas>
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="card shadow-sm text-white bg-dark p-4">
+            <h4 class="card-title">Expense Pie Chart</h4>
+            <canvas id="categoryPieChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<hr class="my-4">
+
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<script>
+    // Get data from the template and ensure they are numbers
+    const totalIncome = parseFloat("{{ total_income|default:0 }}");
+    const totalExpense = parseFloat("{{ total_expense|default:0 }}");
+    const totalEmi = parseFloat("{{ total_emi|default:0 }}");
+    const totalSavings = parseFloat("{{ total_savings|default:0 }}");
+
+    // Create the pie chart
+    const ctx = document.getElementById('summaryPieChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Income', 'Expense', 'EMI', 'Savings'],
+            datasets: [{
+                data: [totalIncome, totalExpense, totalEmi, totalSavings],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.7)',  // Green for Income
+                    'rgba(220, 53, 69, 0.7)',  // Red for Expense
+                    'rgba(23, 162, 184, 0.7)',  // Blue for EMI
+                    'rgba(162, 23, 184, 0.7)'  // Blue for EMI
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(220, 53, 69, 1)',
+                    'rgba(23, 162, 184, 1)',
+                    'rgba(162, 32, 184, 1)',
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: '#ffffff'  // White text for dark background
+                    }
+                },
+                datalabels: {
+                    display: true,
+                    color: '#ffffff',  // White text for dark background
+                    formatter: (value, context) => {
+                        const total = totalIncome + totalExpense + totalEmi;
+                        const percentage = ((value / total) * 100).toFixed(2); // Calculate percentage
+                        return percentage + '%'; // Show percentage
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]  // Add data labels plugin
+    });
+</script>
+
+
+
+<script>
+    // Safely parse the category data
+    const categoryData = JSON.parse("{{ category_data|escapejs }}");
+
+    // Prepare the labels and data for the pie chart
+    const labels = categoryData.map(item => item.category);
+    const data = categoryData.map(item => item.percentage);
+    const amounts = categoryData.map(item => item.amount);  // Store amounts for label display
+
+    // Colors for the chart
+    const colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+    ];
+
+    // Create the pie chart
+    const ctxx = document.getElementById('categoryPieChart').getContext('2d');
+    new Chart(ctxx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors,
+                hoverBackgroundColor: colors,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            // Display percentage and amount in the tooltip
+                            const label = labels[tooltipItem.dataIndex];
+                            const percentage = data[tooltipItem.dataIndex].toFixed(2);
+                            const amount = amounts[tooltipItem.dataIndex];
+                            return `${label}: ${percentage}% - ₹${amount.toFixed(2)}`;
+                        }
+                    }
+                },
+                datalabels: {
+                    display: true,
+                    color: '#00000',  // White text for dark background
+                    formatter: (value, context) => {
+                        const total = amounts.reduce((sum, current) => sum + current, 0);
+                        const percentage = ((value / total) * 100).toFixed(2); // Calculate percentage
+                        const amount = amounts[context.dataIndex];
+                        return `₹${amount.toFixed(2)}`; // Show both percentage and amount
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]  // Add the ChartDataLabels plugin for custom labels
+    });
+</script>
 
 
 {% endblock %}

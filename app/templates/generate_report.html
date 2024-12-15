@@ -12,24 +12,16 @@
         <form method="POST">
             {% csrf_token %}
 
-            
-            <!-- Date Field -->
+            <!-- Frequency Field -->
             <div class="mb-3">
-                <label class="form-label">Start Date</label>
-                <input type="date" name="start_date" class="form-control bg-dark text-white border-0 rounded" required>
+                <label class="form-label">Frequency</label>
+                <select name="frequency" class="form-select bg-dark text-white border-0 rounded" required>
+                    <option value="" disabled selected>Select Frequency</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Quarterly">Quarterly</option>
+                    <option value="Yearly">Yearly</option>
+                </select>
             </div>
-
-            <!-- Date Field -->
-            <div class="mb-3">
-                <label class="form-label">End Date</label>
-                <input type="date" name="end_date" class="form-control bg-dark text-white border-0 rounded" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Report Type</label><sup class="text-danger"> pdf or xlsx</sup>
-                <input type="text" name="report_type" class="form-control bg-dark text-white border-0 rounded" required>
-            </div>
-
 
             <!-- Submit Button -->
             <button type="submit" class="btn btn-success mb-3 w-100">Generate</button>
