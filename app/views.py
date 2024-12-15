@@ -1,11 +1,13 @@
+import json
 from django.forms import ValidationError
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout, decorators
 from .models import Category, Income, Expense, Budget, EMI
 from django.contrib import messages
 from django.db.models import Sum
 from django.contrib.auth import get_user_model
-import json
+
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
@@ -13,6 +15,11 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from datetime import datetime
+from datetime import date
+
+from django.core.mail import send_mail
+from django.conf import settings
+import openpyxl
 
 # Create your views here.
 User = get_user_model()
@@ -57,6 +64,26 @@ def dashboard_view(request):
     total_expense = sum(expense.amount for expense in expenses)
     total_emi = sum(emi.amount for emi in emis)
 
+    # Calculate total savings
+    total_savings = total_income - total_expense - total_emi
+
+
+     # Calculate category-wise expenses
+    category_expenses = expenses.values('category__name').annotate(total_amount=Sum('amount'))
+
+    # Calculate percentages
+    category_data = [
+    {
+        'category': item['category__name'],
+        'amount': float(item['total_amount']),  # Convert Decimal to float
+        'percentage': float((item['total_amount'] / total_expense) * 100)  # Ensure percentage is also a float
+    }
+    for item in category_expenses
+    ]
+    
+    # print(category_data)
+    # print(category_expenses)
+
     # Render the template
     return render(request, 'dashboard.html', {
         'filters': filters,
@@ -64,6 +91,9 @@ def dashboard_view(request):
         'total_income': total_income,
         'total_expense': total_expense,
         'total_emi': total_emi,
+
+        'total_savings': total_savings,
+        'category_data':json.dumps(category_data)  # Ensure the data is serialized to JSON
     })
 
 
@@ -219,6 +249,10 @@ def expense_add_view(request):
             # Retrieve the selected category from the database
             category = Category.objects.get(id=category_id, user=request.user)  # Ensure the category belongs to the user
             Expense.objects.create(user=request.user ,amount=amount, description=description, category=category, date=date, is_fixed=is_fixed)
+            
+            # Check budget limits after creating the expense
+            check_and_notify_budget(request.user, category)
+            
             return redirect('expenses')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
@@ -352,6 +386,86 @@ def income_delete_view(request, id):
 
 
 # Budget
+@login_required(login_url='login')
+def budgets_view(request):
+    budgets = request.user.budgets.all()
+    return render(request, 'budget/budgets.html', context={'budgets':budgets})
+
+
+@login_required(login_url='login')
+def budget_add_view(request):
+    expense_categories = request.user.categories.filter(category_type='Expense')
+    if request.method == "POST":
+        amount_limit = request.POST.get('amount_limit')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        category_id = request.POST.get('category')
+        category = Category.objects.get(id=category_id)
+        budget = Budget.objects.create(user=request.user, amount_limit=amount_limit, start_date=start_date, end_date=end_date, category=category)
+        budget.save()
+        return redirect('budgets')
+    return render(request, 'budget/budget_add.html', context={'expense_categories':expense_categories})
+
+
+@login_required(login_url='login')
+def budget_update_view(request, id):
+    budget = get_object_or_404(Budget, user=request.user, id=id)
+    expense_categories = request.user.categories.filter(category_type='Expense')
+    
+    if request.method == "POST":
+        amount_limit = request.POST.get('amount_limit')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        category_id = request.POST.get('category')
+        category = Category.objects.get(id=category_id)
+
+        try:
+            budget.amount_limit = amount_limit
+            budget.start_date = start_date
+            budget.end_date = end_date
+            budget.category = category
+            budget.save()
+            return redirect('budgets')
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('budgets')
+
+    return render(request, 'budget/budget_update.html', context={'budget':budget, 'expense_categories':expense_categories})
+
+
+@login_required(login_url='login')
+def budget_delete_view(request, id):
+    budget = get_object_or_404(Budget, user=request.user, id=id)
+    budget.delete()
+    return redirect('budgets')
+
+
+def send_budget_exceed_email(user, category, budget):
+    subject = f"Budget Exceeded for {category.name}"
+    message = f"""
+    Hi {user.username},
+
+    You have exceeded the budget limit of ₹{budget.amount_limit} for the category '{category.name}'.
+    Please review your expenses.
+
+    Best Regards,
+    Your Budget Tracker
+    """
+    recipient_list = [user.email]
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list)
+
+
+
+def check_and_notify_budget(user, category):
+    today = date.today()
+    budgets = Budget.objects.filter(user=user,category=category,
+        end_date__gte=today  # Ensure we only check budgets that haven't expired
+    )
+    
+    for budget in budgets:
+        total_expenses = category.expenses.filter(date__gte=budget.start_date, date__lte=budget.end_date).aggregate(Sum('amount'))['amount__sum'] or 0
+        if total_expenses > budget.amount_limit:
+            send_budget_exceed_email(user, category, budget)
 
 
 
@@ -471,7 +585,59 @@ def emi_delete_view(request, id):
 
 
 
-# Report Generate
+
+
 @login_required(login_url='login')
 def generate_report(request):
+    income_data = []  # Initialize as an empty list
+    expense_data = []  # Initialize as an empty list
+
+    if request.method == "POST":
+        frequency = request.POST.get('frequency')
+
+        # Create a new workbook and add a sheet
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Financial Report"
+    
+        # Define headers for the report
+        headers = ["Date", "Category", "Amount", "Type"]
+        ws.append(headers)
+
+        # Get the current date for filtering
+        now = datetime.now()
+
+        # Filter data based on frequency selection
+        if frequency == "Monthly":
+            income_data = Income.objects.filter(date__month=now.month, date__year=now.year)
+            expense_data = Expense.objects.filter(date__month=now.month, date__year=now.year)
+        
+        elif frequency == "Quarterly":
+            start_month = ((now.month - 1) // 3) * 3 + 1
+            end_month = start_month + 2
+            income_data = Income.objects.filter(date__month__gte=start_month, date__month__lte=end_month, date__year=now.year)
+            expense_data = Expense.objects.filter(date__month__gte=start_month, date__month__lte=end_month, date__year=now.year)
+        
+        elif frequency == "Yearly":
+            income_data = Income.objects.filter(date__year=now.year)
+            expense_data = Expense.objects.filter(date__year=now.year)
+
+        # Add income data to the sheet
+        for item in income_data:
+            # Use the string representation of the category for Excel
+            category_name = item.category.__str__() if hasattr(item.category, '__str__') else str(item.category)
+            ws.append([item.date, category_name, item.amount, "Income"])
+
+        # Add expense data to the sheet
+        for item in expense_data:
+            # Use the string representation of the category for Excel
+            category_name = item.category.__str__() if hasattr(item.category, '__str__') else str(item.category)
+            ws.append([item.date, category_name, item.amount, "Expense"])
+
+        # Create the response to download the file
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=financial_report.xlsx'
+        wb.save(response)
+        return response
+
     return render(request, 'generate_report.html', context={})
